@@ -1,4 +1,4 @@
-#include "brainfuck.h"
+#include "codex.h"
 
 #include <iostream>
 #include <fstream>
