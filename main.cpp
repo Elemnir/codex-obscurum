@@ -25,7 +25,8 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	Brainfuck bf(in);
+	Brainfuck bf;
+	bf.load(in);
 	bf.interpret();
 
     std::cin >> fname;

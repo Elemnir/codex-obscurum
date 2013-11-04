@@ -1,7 +1,5 @@
 #include "brainfuck.h"
 
-#include <iostream>
-
 Brainfuck::Brainfuck()
 {
     reset_memory(1024);
@@ -47,10 +45,26 @@ void Brainfuck::reset_memory(unsigned MEMSIZE)
 
 void Brainfuck::interpret()
 {
-    interpreter(code.begin());
+    interpreter(code.begin(), std::cin, std::cout);
 }
 
-void Brainfuck::interpreter(std::string::iterator i)
+void Brainfuck::interpret(std::istream& in)
+{
+    interpreter(code.begin(), in, std::cout);
+}
+
+void Brainfuck::interpret(std::ostream& out)
+{
+    interpreter(code.begin(), std::cin, out);
+}
+
+void Brainfuck::interpret(std::istream& in, std::ostream& out)
+{
+    interpreter(code.begin(), in, out);
+}
+
+void Brainfuck::interpreter(std::string::iterator i,
+                            std::istream &in, std::ostream &out)
 {
     while (i != code.end())
     {
@@ -71,16 +85,15 @@ void Brainfuck::interpreter(std::string::iterator i)
                 --(*memory);
                 break;
             case '.': //print out data value
-                std::cout.put(*(*memory));
+                out.put(*(*memory));
                 break;
             case ',': //set data value to input
-				std::cout << ":";
-				std::cin.get(*(*memory));
+				in.get(*(*memory));
                 break;
 			case '[': //execute conditional statement
                 if (*(*memory))
                 {
-					interpreter(i);
+					interpreter(i, in, out);
 					--i; //return the code iterator to the '[' symbol
 				}
 				else

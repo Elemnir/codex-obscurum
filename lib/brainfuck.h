@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-#include <istream>
+#include <iostream>
 #include <memory>
 
 class Brainfuck
@@ -17,7 +17,11 @@ class Brainfuck
 
         void load(std::istream &in);
         void reset_memory(unsigned MEMSIZE=1024);
+
         void interpret();
+        void interpret(std::istream &in);
+        void interpret(std::ostream &out);
+        void interpret(std::istream &in, std::ostream &out);
 
     protected:
         class Memory
@@ -38,7 +42,9 @@ class Brainfuck
         };
 
     private:
-        void interpreter(std::string::iterator i);
+        void interpreter(std::string::iterator i,
+                         std::istream &in, std::ostream &out);
+
         std::string code;
         std::shared_ptr<Memory> memory;
 };
