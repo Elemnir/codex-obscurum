@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <memory>
 
 class Brainfuck
 {
@@ -27,14 +26,15 @@ class Brainfuck
         class Memory
         {//data storage and pointer logic
             public:
+                Memory() {}
                 Memory(unsigned memsize)
                 {
                     data.resize(memsize, 0);
                     p = data.begin();
                 }
                 char &operator*() { return *p; }
-                std::vector<char>::iterator operator++() { return ++p; }
-                std::vector<char>::iterator operator--() { return --p; }
+                Memory operator++() { ++p; return *this; }
+                Memory operator--() { --p; return *this; }
 
             private:
                 std::vector<char> data;
@@ -46,7 +46,7 @@ class Brainfuck
                          std::istream &in, std::ostream &out);
 
         std::string code;
-        std::shared_ptr<Memory> memory;
+        Memory memory;
 };
 
 #endif // BRAINFUCK_H

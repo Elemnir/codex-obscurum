@@ -40,7 +40,7 @@ void Brainfuck::load(std::istream& in)
 
 void Brainfuck::reset_memory(unsigned MEMSIZE)
 {
-    memory = std::make_shared<Memory>(MEMSIZE);
+    memory = Memory(MEMSIZE);
 }
 
 void Brainfuck::interpret()
@@ -73,32 +73,29 @@ void Brainfuck::interpreter(std::string::iterator i,
         switch(c)
         {
             case '+': //increment data value
-                ++*(*memory);
+                ++*memory;
                 break;
             case '-': //decrement data value
-                --*(*memory);
+                --*memory;
                 break;
             case '>': //increment data pointer
-                ++(*memory);
+                ++memory;
                 break;
             case '<': //decrement data pointer
-                --(*memory);
+                --memory;
                 break;
             case '.': //print out data value
-                out.put(*(*memory));
+                out.put(*memory);
                 break;
             case ',': //set data value to input
-				in.get(*(*memory));
+				in.get(*memory);
                 break;
 			case '[': //execute conditional statement
-                if (*(*memory))
-                {
-					interpreter(i, in, out);
-					--i; //return the code iterator to the '[' symbol
-				}
+                if (*memory)
+					interpreter(i--, in, out);
 				else
 				{//advance the code iterator to the symbol after the ']'
-					int scopeCount = 1;
+					int scopeCount(1);
 					while (scopeCount) {
 						++i;
 						if (*i == '[') ++scopeCount;
