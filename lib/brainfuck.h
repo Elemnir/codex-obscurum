@@ -33,8 +33,8 @@ class Brainfuck
                     p = data.begin();
                 }
                 char &operator*() { return *p; }
-                Memory operator++() { ++p; return *this; }
-                Memory operator--() { --p; return *this; }
+                Memory &operator++() { ++p; return *this; }
+                Memory &operator--() { --p; return *this; }
 
             private:
                 std::vector<char> data;

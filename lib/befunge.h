@@ -5,28 +5,7 @@
 #include <vector>
 #include <string>
 #include <stack>
-#include <memory>
-
-enum Direction
-{
-    NORTH,
-    EAST,
-    SOUTH,
-    WEST
-};
-
-class CoordPair
-{
-    public:
-        CoordPair &operator+=(CoordPair const& rhs)
-        {
-            x += rhs.x;
-            y += rhs.y;
-            return *this;
-        }
-
-        int x, y;
-};
+#include <utility>
 
 class Befunge
 {
@@ -44,30 +23,32 @@ class Befunge
         void interpret(std::istream &in, std::ostream &out);
 
     protected:
-        class Playfield
+        enum Direction
+        {
+            NORTH,
+            EAST,
+            SOUTH,
+            WEST
+        };
+
+        class CoordPair
         {
             public:
-                Playfield();
-                Playfield(unsigned width, unsigned height);
-                Playfield(unsigned width, unsigned height, std::istream &in);
-                Playfield(std::istream &in);
-
-                void load(std::istream &in);
-                char getInstruction(unsigned x, unsigned y);
-                void setInstruction(unsigned x, unsigned y, char val);
-
-            private:
-                std::vector<std::string> field;
-
+                CoordPair();
+                CoordPair(int xsize, int ysize);
+                CoordPair &operator+=(CoordPair const& rhs);
+                int x, y;
+                int xmax, ymax;
         };
 
         class FieldPointer
         {
             public:
                 FieldPointer();
+                FieldPointer(int xsize, int ysize);
 
                 void setDirection(Direction dir);
-                CoordPair const& getPos();
+                std::pair<int,int> const getPos();
 
                 FieldPointer &operator++() { pos += vel; return *this;}
 
@@ -79,8 +60,8 @@ class Befunge
     private:
         void interpreter(std::istream &in, std::ostream &out);
 
-        std::shared_ptr<Playfield> playfield;
-        std::shared_ptr<std::stack<int> > playstack;
+        std::vector<std::string> playfield;
+        std::stack<int> playstack;
         FieldPointer ptr;
 };
 
