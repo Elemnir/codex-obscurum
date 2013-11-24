@@ -24,7 +24,7 @@ void Befunge::load(std::istream& in)
         if (c == '\n')
             playfield.push_back("");
         else
-            playfield[0] += c;
+            playfield[playfield.size() - 1] += c;
     }
 }
 
@@ -140,7 +140,7 @@ void Befunge::interpreter(std::istream &in, std::ostream &out)
                     playstack.pop();
                     auto b = playstack.top();
                     playstack.pop();
-                    playstack.push(a - b);
+                    playstack.push(b - a);
                     break;
                 }
                 case '*':
@@ -158,7 +158,7 @@ void Befunge::interpreter(std::istream &in, std::ostream &out)
                     playstack.pop();
                     auto b = playstack.top();
                     playstack.pop();
-                    playstack.push(a / b);
+                    playstack.push(b / a);
                     break;
                 }
                 case '%':
@@ -167,7 +167,168 @@ void Befunge::interpreter(std::istream &in, std::ostream &out)
                     playstack.pop();
                     auto b = playstack.top();
                     playstack.pop();
-                    playstack.push(a % b);
+                    playstack.push(b % a);
+                    break;
+                }
+                case '!':
+                {
+                    auto a = playstack.top();
+                    playstack.pop();
+                    if (a)
+                        playstack.push(1);
+                    else
+                        playstack.push(0);
+                    break;
+                }
+                case '`':
+                {
+                    auto a = playstack.top();
+                    playstack.pop();
+                    auto b = playstack.top();
+                    playstack.pop();
+                    if (b > a)
+                        playstack.push(1);
+                    else
+                        playstack.push(0);
+                    break;
+                }
+                case '_':
+                {
+                    if (playstack.top())
+                        ptr.setDirection(WEST);
+                    else
+                        ptr.setDirection(EAST);
+                    playstack.pop();
+                    break;
+                }
+                case '|':
+                {
+                    if (playstack.top())
+                        ptr.setDirection(NORTH);
+                    else
+                        ptr.setDirection(SOUTH);
+                    playstack.pop();
+                    break;
+                }
+                case ':':
+                {
+                    playstack.push(playstack.top());
+                    break;
+                }
+                case '\\':
+                {
+                    auto a = playstack.top();
+                    playstack.pop();
+                    auto b = playstack.top();
+                    playstack.pop();
+                    playstack.push(a);
+                    playstack.push(b);
+                    break;
+                }
+                case '$':
+                {
+                    playstack.pop();
+                    break;
+                }
+                case '.':
+                {
+                    out << playstack.top();
+                    playstack.pop();
+                    break;
+                }
+                case ',':
+                {
+                    out << char(playstack.top());
+                    playstack.pop();
+                    break;
+                }
+                case '#':
+                {
+                    ++ptr;
+                    break;
+                }
+                case '0':
+                {
+                    playstack.push(0);
+                    break;
+                }
+                case '1':
+                {
+                    playstack.push(1);
+                    break;
+                }
+                case '2':
+                {
+                    playstack.push(2);
+                    break;
+                }
+                case '3':
+                {
+                    playstack.push(3);
+                    break;
+                }
+                case '4':
+                {
+                    playstack.push(4);
+                    break;
+                }
+                case '5':
+                {
+                    playstack.push(5);
+                    break;
+                }
+                case '6':
+                {
+                    playstack.push(6);
+                    break;
+                }
+                case '7':
+                {
+                    playstack.push(7);
+                    break;
+                }
+                case '8':
+                {
+                    playstack.push(8);
+                    break;
+                }
+                case '9':
+                {
+                    playstack.push(9);
+                    break;
+                }
+                case 'p':
+                {
+                    auto y = playstack.top();
+                    playstack.pop();
+                    auto x = playstack.top();
+                    playstack.pop();
+                    auto v = playstack.top();
+                    playstack.pop();
+                    playfield[y][x] = v;
+                    break;
+                }
+                case 'g':
+                {
+                    auto y = playstack.top();
+                    playstack.pop();
+                    auto x = playstack.top();
+                    playstack.pop();
+                    playstack.push(playfield[y][x]);
+                    break;
+                }
+                case '&':
+                {
+                    int temp;
+                    in >> temp;
+                    playstack.push(temp);
+                    break;
+                }
+                case '~':
+                {
+                    char temp;
+                    in >> temp;
+                    playstack.push(temp);
                     break;
                 }
                 case '@':
