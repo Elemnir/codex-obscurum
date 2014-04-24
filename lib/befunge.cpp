@@ -1,5 +1,11 @@
 #include "befunge.h"
 
+#include <iostream>
+
+#include "nd_rand.h"
+#include <random>
+std::mt19937 Befunge::rng(nd_rand());
+
 Befunge::Befunge()
 {
     reset_stack();
@@ -10,27 +16,29 @@ Befunge::Befunge(std::istream& in)
     load(in);
 }
 
-Befunge::~Befunge()
-{
-}
-
 void Befunge::load(std::istream& in)
 {
     playfield.clear();
-    playfield.push_back("");
-    char c;
-    while (in.get(c))
+    unsigned maxlen = 0;
+    std::string line;
+    while (getline(in, line))
     {
-        if (c == '\n')
-            playfield.push_back("");
-        else
-            playfield[playfield.size() - 1] += c;
+        if (line.size() > maxlen)
+            maxlen = line.size();
+        playfield.push_back(line);
     }
+
+    for (auto& i : playfield)
+        while (i.size() < maxlen)
+            i += " ";
+
+    ptr = FieldPointer(maxlen, playfield.size());
 }
 
 void Befunge::reset_stack()
 {
-    playstack = std::stack<int>();
+    while (!playstack.empty())
+        playstack.pop();
 }
 
 void Befunge::interpret()
@@ -53,32 +61,6 @@ void Befunge::interpret(std::istream& in, std::ostream& out)
     interpreter(in, out);
 }
 
-Befunge::CoordPair::CoordPair()
-{
-    xmax = 0;
-    ymax = 0;
-}
-
-Befunge::CoordPair::CoordPair(int xsize, int ysize)
-{
-    xmax = xsize;
-    ymax = ysize;
-}
-
-Befunge::CoordPair &Befunge::CoordPair::operator+=(CoordPair const& rhs)
-{
-    x += rhs.x;
-    y += rhs.y;
-
-    if (x >= xmax) x = 0;
-    else if (x < 0) x = xmax - 1;
-
-    if (y >= ymax) y = 0;
-    else if (y < 0) y = ymax - 1;
-
-    return *this;
-}
-
 void Befunge::interpreter(std::istream &in, std::ostream &out)
 {
     bool stringmode = false;
@@ -87,10 +69,10 @@ void Befunge::interpreter(std::istream &in, std::ostream &out)
         std::pair<int,int> c = ptr.getPos();
         if (stringmode)
         {
-            if (playfield[c.first][c.second] == '"')
+            if (playfield[c.first][c.second] == '\"')
                 stringmode = false;
             else
-                playstack.push(playfield[c.first][c.second]);
+                playstack.push(int(playfield[c.first][c.second]));
         }
         else
         {
@@ -120,7 +102,7 @@ void Befunge::interpreter(std::istream &in, std::ostream &out)
                     ptr.setDirection(SOUTH);
                     break;
                 }
-                case '"':
+                case '\"':
                 {
                     stringmode = true;
                     break;
@@ -194,16 +176,16 @@ void Befunge::interpreter(std::istream &in, std::ostream &out)
                 }
                 case '_':
                 {
-                    if (playstack.top())
-                        ptr.setDirection(WEST);
-                    else
+                    if (playstack.top() == 0)
                         ptr.setDirection(EAST);
+                    else
+                        ptr.setDirection(WEST);
                     playstack.pop();
                     break;
                 }
                 case '|':
                 {
-                    if (playstack.top())
+                    if (playstack.top() == 0)
                         ptr.setDirection(NORTH);
                     else
                         ptr.setDirection(SOUTH);
@@ -331,6 +313,26 @@ void Befunge::interpreter(std::istream &in, std::ostream &out)
                     playstack.push(temp);
                     break;
                 }
+                case '?':
+                {
+                    std::discrete_distribution<int> dist {1,1,1,1};
+                    switch(dist(rng))
+                    {
+                        case 0:
+                            ptr.setDirection(NORTH);
+                            break;
+                        case 1:
+                            ptr.setDirection(EAST);
+                            break;
+                        case 2:
+                            ptr.setDirection(SOUTH);
+                            break;
+                        case 3:
+                            ptr.setDirection(WEST);
+                            break;
+                    }
+                    break;
+                }
                 case '@':
                 {
                     return;
@@ -343,6 +345,34 @@ void Befunge::interpreter(std::istream &in, std::ostream &out)
         }
         ++ptr;
     }
+}
+
+Befunge::CoordPair::CoordPair()
+{
+    xmax = 0;
+    ymax = 0;
+    x = y = 0;
+}
+
+Befunge::CoordPair::CoordPair(int xsize, int ysize)
+{
+    xmax = xsize - 1;
+    ymax = ysize - 1;
+    x = y = 0;
+}
+
+Befunge::CoordPair &Befunge::CoordPair::operator+=(CoordPair const& rhs)
+{
+    x += rhs.x;
+    y += rhs.y;
+
+    if (x > xmax) x = 0;
+    else if (x < 0) x = xmax;
+
+    if (y > ymax) y = 0;
+    else if (y < 0) y = ymax;
+
+    return *this;
 }
 
 Befunge::FieldPointer::FieldPointer()
@@ -385,6 +415,5 @@ void Befunge::FieldPointer::setDirection(Direction dir)
 
 std::pair<int,int> const Befunge::FieldPointer::getPos()
 {
-    auto rval = std::make_pair<int&,int&>(pos.x,pos.y);
-    return rval;
+    return std::make_pair(pos.y,pos.x);
 }

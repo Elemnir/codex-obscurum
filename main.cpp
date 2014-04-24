@@ -6,29 +6,19 @@
 
 int main(int argc, char* argv[])
 {
-    std::string fname;
-    if (argc == 1)
-    {//no command line args
-        std::cout << "Source file: ";
-        std::cin >> fname;
-    }
-    else
-    {//run whatever was specified in the command line
-       fname = argv[1];
-    }
-
-    //open the file
-    std::ifstream in(fname.c_str());
-    if (in.fail())
-    {
-		std::cout << "Error: File not found.\n";
-		return 0;
-	}
-
+/*
 	Brainfuck bf;
-	bf.load(in);
+	bf.code = "++++++[>++++++<-]>.";
 	bf.interpret();
+*/
+    std::ifstream in("hw_befunge.txt");
+    Befunge bf;
+    if (in.fail())
+        return -1;
+    bf.load(in);
+    bf.interpret();
 
-    std::cin >> fname;
+    std::string junk;
+    getline(std::cin, junk);
     return 0;
 }

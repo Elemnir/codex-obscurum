@@ -6,13 +6,13 @@
 #include <string>
 #include <stack>
 #include <utility>
+#include <random>
 
 class Befunge
 {
     public:
         Befunge();
         Befunge(std::istream &in);
-        virtual ~Befunge();
 
         void load(std::istream &in);
         void reset_stack();
@@ -62,6 +62,7 @@ class Befunge
 
         std::vector<std::string> playfield;
         std::stack<int> playstack;
+        static std::mt19937 rng;
         FieldPointer ptr;
 };
 

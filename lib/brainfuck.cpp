@@ -1,111 +1,101 @@
 #include "brainfuck.h"
 
-Brainfuck::Brainfuck()
+#include <algorithm>
+
+Brainfuck::Brainfuck() :
+    in(std::cin), out(std::cout)
 {
-    reset_memory(1024);
+    initialize_dictionary();
+    reset_memory();
 }
 
-Brainfuck::Brainfuck(unsigned MEMSIZE)
+Brainfuck::Brainfuck(std::string const& source, unsigned memsize) :
+    in(std::cin), out(std::cout)
 {
-    reset_memory(MEMSIZE);
+    initialize_dictionary();
+    reset_memory(memsize);
+    code = source;
 }
 
-Brainfuck::Brainfuck(unsigned MEMSIZE, std::istream& in)
+void Brainfuck::parse_code()
 {
-    reset_memory(MEMSIZE);
-    load(in);
+    std::string temp;
+    for_each(code.begin(), code.end(), [&] (char i) {
+        if (mapped_operations.find(i) != std::string::npos)
+            temp += i;
+    });
+    code = temp;
 }
 
-Brainfuck::Brainfuck(std::istream& in)
+void Brainfuck::set_streams(std::istream& instream, std::ostream& outstream)
 {
-    reset_memory(1024);
-    load(in);
+    in = std::ref(instream);
+    out = std::ref(outstream);
 }
 
-Brainfuck::~Brainfuck()
+void Brainfuck::set_istream(std::istream& instream)
 {
+    in = std::ref(instream);
 }
 
-void Brainfuck::load(std::istream& in)
+void Brainfuck::set_ostream(std::ostream& outstream)
 {
-    code.clear();
-    std::string s("<>+-[].,");
-    char c;
-    while (in.get(c))
-    {//store brainfuck operations in a string
-        if (s.find(c) != std::string::npos)
-            code += c;
-    }
+    out = std::ref(outstream);
 }
 
-void Brainfuck::reset_memory(unsigned MEMSIZE)
+void Brainfuck::reset_memory(unsigned memsize)
 {
-    memory = Memory(MEMSIZE);
+    memory = Memory<char>(memsize);
 }
 
 void Brainfuck::interpret()
 {
-    interpreter(code.begin(), std::cin, std::cout);
+    iter_stack.push(code.begin());
+    interpreter();
 }
 
-void Brainfuck::interpret(std::istream& in)
+void Brainfuck::interpret(std::istream& instream, std::ostream& outstream)
 {
-    interpreter(code.begin(), in, std::cout);
+    set_streams(instream, outstream);
+    iter_stack.push(code.begin());
+    interpreter();
 }
 
-void Brainfuck::interpret(std::ostream& out)
+void Brainfuck::initialize_dictionary()
 {
-    interpreter(code.begin(), std::cin, out);
+    dict.clear();
+    mapped_operations = "+-><.,[]";
+
+    dict['+'] = [&] () { ++*memory; };
+    dict['-'] = [&] () { --*memory; };
+    dict['>'] = [&] () { ++memory; };
+    dict['<'] = [&] () { --memory; };
+    dict['.'] = [&] () { out.get().put(*memory); };
+    dict[','] = [&] () { in.get().get(*memory); };
+    dict[']'] = [&] () { iter_stack.pop(); };
+    dict['['] = [&] () {
+        if (*memory) {
+            --iter_stack.top();
+            iter_stack.push(iter_stack.top());
+            ++iter_stack.top();
+        } else {
+            int scopeCount(1);
+            while (scopeCount) {
+                ++iter_stack.top();
+                if (*(iter_stack.top()) == '[') ++scopeCount;
+                if (*(iter_stack.top()) == ']') --scopeCount;
+            }
+            ++iter_stack.top();
+        } };
 }
 
-void Brainfuck::interpret(std::istream& in, std::ostream& out)
+void Brainfuck::interpreter()
 {
-    interpreter(code.begin(), in, out);
-}
-
-void Brainfuck::interpreter(std::string::iterator i,
-                            std::istream &in, std::ostream &out)
-{
-    while (i != code.end())
+    while (iter_stack.top() != code.end())
     {
-        char c = *i;
-        ++i;
-        switch(c)
-        {
-            case '+': //increment data value
-                ++*memory;
-                break;
-            case '-': //decrement data value
-                --*memory;
-                break;
-            case '>': //increment data pointer
-                ++memory;
-                break;
-            case '<': //decrement data pointer
-                --memory;
-                break;
-            case '.': //print out data value
-                out.put(*memory);
-                break;
-            case ',': //set data value to input
-				in.get(*memory);
-                break;
-			case '[': //execute conditional statement
-                if (*memory)
-					interpreter(i--, in, out);
-				else
-				{//advance the code iterator to the symbol after the ']'
-					int scopeCount(1);
-					while (scopeCount) {
-						++i;
-						if (*i == '[') ++scopeCount;
-						if (*i == ']') --scopeCount;
-					}
-					++i;
-				}
-				break;
-            case ']': //end conditional statement
-                return;
-        }
+        char c = *iter_stack.top();
+        ++iter_stack.top();
+        if (dict.find(c) != dict.end())
+            dict[c] ();
     }
 }
