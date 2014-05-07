@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 	bf.code = "++++++[>++++++<-]>.";
 	bf.interpret();
 */
-    std::ifstream in("hw_befunge.txt");
+    std::ifstream in("sample_code/hello.bfg");
     Befunge bf;
     if (in.fail())
         return -1;
@@ -19,6 +19,6 @@ int main(int argc, char* argv[])
     bf.interpret();
 
     std::string junk;
-    getline(std::cin, junk);
+    std::cin >> junk;
     return 0;
 }

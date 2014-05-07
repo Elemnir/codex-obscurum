@@ -186,9 +186,9 @@ void Befunge::interpreter(std::istream &in, std::ostream &out)
                 case '|':
                 {
                     if (playstack.top() == 0)
-                        ptr.setDirection(NORTH);
-                    else
                         ptr.setDirection(SOUTH);
+                    else
+                        ptr.setDirection(NORTH);
                     playstack.pop();
                     break;
                 }
